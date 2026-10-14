@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GiftBox — Конструктор подарунка</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Шапка застосунку з перемикачем вкладок -->
+    <header class="app-header">
+        <div class="brand-badge">
+            <span>✨</span>
+            <span>GiftBox Platform</span>
+        </div>
+
+        <nav class="nav-tabs" role="tablist" aria-label="Головна навігація">
+            <button type="button" class="tab-btn active" id="tabConstructor" role="tab" aria-selected="true" aria-controls="viewConstructor">
+                <span class="tab-icon">🎁</span>
+                <span>Конструктор</span>
+            </button>
+            <button type="button" class="tab-btn" id="tabAdmin" role="tab" aria-selected="false" aria-controls="viewAdmin">
+                <span class="tab-icon">⚙️</span>
+                <span>Адмін панель</span>
+                <span class="tab-badge" id="giftsCountBadge">0</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <!-- =============================================================== -->
+        <!-- ВКЛАДКА 1: КОНСТРУКТОР ПОДАРУНКА                               -->
+        <!-- =============================================================== -->
+        <section id="viewConstructor" class="tab-content active" role="tabpanel" aria-labelledby="tabConstructor">
+            <h1>🎁 Збери свій подарунок</h1>
+            <p class="subtitle">Швидко підбери подарунок для потрібної людини, події та бюджету.</p>
+
+            <section class="form-card">
+                <label for="recipient">Для кого?</label>
+                <select id="recipient">
+                    <option value="">Оберіть отримувача</option>
+                    <option value="мами">Мами</option>
+                    <option value="тата">Тата</option>
+                    <option value="подруги">Подруги</option>
+                    <option value="друга">Друга</option>
+                    <option value="дівчини">Дівчини</option>
+                    <option value="хлопця">Хлопця</option>
+                    <option value="брата">Брата</option>
+                    <option value="сестри">Сестри</option>
+                    <option value="бабусі">Бабусі</option>
+                    <option value="дідуся">Дідуся</option>
+                </select>
+
+                <label for="event">Подія</label>
+                <select id="event">
+                    <option value="">Оберіть подію</option>
+                    <option value="Дня народження">День народження</option>
+                    <option value="Нового року">Новий рік</option>
+                    <option value="8 Березня">8 Березня</option>
+                    <option value="річниці">Річниця</option>
+                    <option value="випускного">Випускний</option>
+                </select>
+
+                <label for="budget">Ваш бюджет, ₴</label>
+                <input type="number" id="budget" placeholder="Наприклад, 1000" min="1">
+
+                <p id="error"></p>
+                <button type="button" id="createBtn">Зібрати подарунок</button>
+            </section>
+
+            <section id="result" class="result-card"></section>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- ВКЛАДКА 2: АДМІН ПАНЕЛЬ                                        -->
+        <!-- =============================================================== -->
+        <section id="viewAdmin" class="tab-content" role="tabpanel" aria-labelledby="tabAdmin">
+            <div class="admin-title-wrap">
+                <h2>⚙️ Адмін панель</h2>
+                <p class="subtitle">Керуйте всіма подарунками: редагуйте назви, ціни, отримувачів, події та опис</p>
+            </div>
+
+            <!-- Панель інструментів (Пошук, Фільтри, Додавання) -->
+            <div class="admin-toolbar">
+                <div class="admin-toolbar-left">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="adminSearchInput" placeholder="Пошук за назвою або описом...">
+                    </div>
+
+                    <select id="adminTierFilter" class="filter-select">
+                        <option value="">Всі бюджети</option>
+                        <option value="budget">До 500 ₴</option>
+                        <option value="medium">500 - 1000 ₴</option>
+                        <option value="premium">Від 1000 ₴</option>
+                    </select>
+                </div>
+
+                <div class="admin-toolbar-right">
+                    <button type="button" id="addNewGiftBtn" class="btn-accent">
+                        <span>➕</span>
+                        <span>Додати подарунок</span>
+                    </button>
+                    <button type="button" id="resetDefaultsBtn" class="btn-secondary" title="Відновити початкові подарунки">
+                        <span>🔄</span>
+                        <span>Скинути</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Статистика каталогу -->
+            <div class="stats-bar">
+                <div class="stat-chip">Всього подарунків: <strong id="statTotal">0</strong></div>
+                <div class="stat-chip">До 500 ₴: <strong id="statBudget">0</strong></div>
+                <div class="stat-chip">500–1000 ₴: <strong id="statMedium">0</strong></div>
+                <div class="stat-chip">Від 1000 ₴: <strong id="statPremium">0</strong></div>
+            </div>
+
+            <!-- Список подарунків (Картки з можливістю редагування) -->
+            <div id="adminGiftsList" class="gifts-grid">
+                <!-- Картки подарунків генеруються динамічно через script.js -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- МОДАЛЬНЕ ВІКНО: РЕДАГУВАННЯ / СТВОРЕННЯ ПОДАРУНКА                    -->
+    <!-- =================================================================== -->
+    <div class="modal-backdrop" id="giftModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">Редагувати подарунок</h3>
+                <button type="button" class="btn-close-modal" id="closeModalBtn" aria-label="Закрити">&times;</button>
+            </div>
+
+            <form id="giftEditForm">
+                <div class="modal-body">
+                    <input type="hidden" id="modalGiftId">
+
+                    <div class="modal-form-grid">
+                        <!-- Назва подарунка -->
+                        <div class="form-group-modal form-full-width">
+                            <label for="modalGiftTitle">Назва подарунка *</label>
+                            <input type="text" id="modalGiftTitle" placeholder="Наприклад, Солодкий набір" required>
+                        </div>
+
+                        <!-- Емодзі / Іконка -->
+                        <div class="form-group-modal">
+                            <label for="modalGiftEmoji">Іконка / Емодзі</label>
+                            <input type="text" id="modalGiftEmoji" placeholder="🎁" maxlength="4">
+                            <div class="emoji-chips">
+                                <button type="button" class="emoji-chip-btn" data-emoji="🎁">🎁</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="🍫">🍫</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="💐">💐</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="🕯️">🕯️</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="💌">💌</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="☕">☕</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="🫖">🫖</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="🧣">🧣</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="🎧">🎧</button>
+                                <button type="button" class="emoji-chip-btn" data-emoji="✨">✨</button>
+                            </div>
+                        </div>
+
+                        <!-- Орієнтовна ціна -->
+                        <div class="form-group-modal">
+                            <label for="modalGiftPrice">Ціна (₴) *</label>
+                            <input type="number" id="modalGiftPrice" placeholder="500" min="1" required>
+                        </div>
+
+                        <!-- Категорія бюджету -->
+                        <div class="form-group-modal form-full-width">
+                            <label for="modalGiftTier">Категорія бюджету</label>
+                            <select id="modalGiftTier">
+                                <option value="budget">Бюджетний (до 500 ₴)</option>
+                                <option value="medium">Середній (500 - 1000 ₴)</option>
+                                <option value="premium">Преміум (від 1000 ₴)</option>
+                            </select>
+                        </div>
+
+                        <!-- Отримувачі -->
+                        <div class="form-group-modal form-full-width">
+                            <label>Для кого підходить подарунок?</label>
+                            <div class="pills-checkbox-group">
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="all"> Всі отримувачі
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="мами"> Мами
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="тата"> Тата
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="подруги"> Подруги
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="друга"> Друга
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="дівчини"> Дівчини
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="хлопця"> Хлопця
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="брата"> Брата
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="сестри"> Сестри
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="бабусі"> Бабусі
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="recipientCheck" value="дідуся"> Дідуся
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Події -->
+                        <div class="form-group-modal form-full-width">
+                            <label>Для якої події?</label>
+                            <div class="pills-checkbox-group">
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="all"> Всі події
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="Дня народження"> День народження
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="Нового року"> Новий рік
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="8 Березня"> 8 Березня
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="річниці"> Річниця
+                                </label>
+                                <label class="pill-check-label">
+                                    <input type="checkbox" name="eventCheck" value="випускного"> Випускний
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Опис подарунка -->
+                        <div class="form-group-modal form-full-width">
+                            <label for="modalGiftDesc">Опис подарунка / Що входить</label>
+                            <textarea id="modalGiftDesc" rows="3" placeholder="Детальний опис вмісту подарунка..."></textarea>
+                        </div>
+
+                        <!-- URL зображення -->
+                        <div class="form-group-modal form-full-width">
+                            <label for="modalGiftImage">Посилання на фото / зображення (необов'язково)</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="modalGiftImage" placeholder="https://example.com/photo.jpg">
+                                <div class="image-preview-box" id="modalImagePreview">📷</div>
+                            </div>
+                        </div>
+
+                        <!-- Активність -->
+                        <div class="form-group-modal form-full-width" style="margin-top: 6px;">
+                            <label class="pill-check-label" style="display: inline-flex;">
+                                <input type="checkbox" id="modalGiftActive" checked>
+                                <span>Активний подарунок (відображати в рекомендаціях)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelModalBtn">Скасувати</button>
+                    <button type="submit" class="btn-accent">💾 Зберегти зміни</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Контейнер для сповіщень -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
